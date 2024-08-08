@@ -8,8 +8,13 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\ResendEmailVerificationLinkRequest;
 use App\Http\Requests\VerifyEmailRequest;
 use App\Http\Resources\UserResource;
+use App\Models\User;
 use App\Services\AuthService;
 use App\Services\EmailVerificationService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
@@ -73,4 +78,59 @@ class AuthController extends Controller
         return response()->json(['message' => 'Successfully logged out']);
     }
 
+    public function googleRedirect(Request $request)
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function googleCallback(Request $request)
+    {
+        $userdata = Socialite::driver('google')->user();
+        $uuid = Str::uuid()->toString();
+
+        $user = User::where('email', $userdata->email)->where('authtype', 'google')->first();
+        if ($user) {
+            $token = JWTAuth::fromUser($user);
+            auth('api')->setToken($token)->authenticate();
+            return $this->createNewToken($token);
+        } else {
+            $user = new User();
+            $user->name = $userdata['name'];
+            $user->email = $userdata['email'];
+            $user->password = Hash::make($uuid . now());
+            $user->authtype = 'google';
+            $user->role_id = 1;
+            $user->email_verified_at = now();
+            $user->save();
+            return new UserResource($user);
+        }
+    }
+
+    public function facebookRedirect(Request $request): \Symfony\Component\HttpFoundation\RedirectResponse|\Illuminate\Http\RedirectResponse
+    {
+        return Socialite::driver('facebook')->redirect();
+    }
+
+    public function facebookCallback(Request $request): UserResource|\Illuminate\Http\JsonResponse
+    {
+        $userdata = Socialite::driver('facebook')->user();
+        $uuid = Str::uuid()->toString();
+
+        $user = User::where('email', $userdata->email)->where('authtype', 'facebook')->first();
+        if ($user) {
+            $token = JWTAuth::fromUser($user);
+            auth('api')->setToken($token)->authenticate();
+            return $this->createNewToken($token);
+        } else {
+            $user = new User();
+            $user->name = $userdata['name'];
+            $user->email = $userdata['email'];
+            $user->password = Hash::make($uuid . now());
+            $user->authtype = 'facebook';
+            $user->role_id = 1;
+            $user->email_verified_at = now();
+            $user->save();
+            return new UserResource($user);
+        }
+    }
 }

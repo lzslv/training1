@@ -12,6 +12,14 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+
+Route::get('auth/google/redirect', [AuthController::class, 'googleRedirect']);
+Route::get('auth/google/callback', [AuthController::class, 'googleCallback']);
+
+Route::get('auth/facebook/redirect', [AuthController::class, 'facebookRedirect']);
+Route::get('auth/facebook/callback', [AuthController::class, 'facebookCallback']);
+
+
 Route::post('auth/register', [AuthController::class, 'register']);
 Route::post('auth/login', [AuthController::class, 'login']);
 Route::post('auth/email/verify', [AuthController::class, 'verifyUserEmail']);
