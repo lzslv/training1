@@ -1,0 +1,375 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Testing1 API",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/": {},
+        "/api/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Регистрация",
+                "operationId": "eb3623f9bcd09a1dacbefaac07aed1bb",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "vlad11"
+                                    },
+                                    "role_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "authtype": {
+                                        "type": "string",
+                                        "example": "email"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "vlad11@gmail.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "123123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "123123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Успешная регистрация",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "vlad11"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "vlad11@gmail.com"
+                                        },
+                                        "role": {
+                                            "type": "string",
+                                            "example": "user"
+                                        },
+                                        "authtype": {
+                                            "type": "string",
+                                            "example": "email"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-08-12T14:30:00Z"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-08-12T14:30:00Z"
+                                        },
+                                        "email_verified_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-08-12T14:30:00Z"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/email/resend-verification": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Повторная отправка ссылки для верификации электронной почты",
+                "operationId": "b9d9bcf97a9a62c333b9976440f29d07",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "vlad11@gmail.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Успешная отправка ссылки для верификации",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Verification link sent to your email"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/email/verify": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Подтверждение аккаунта",
+                "operationId": "9f9ac7e7e682996440568ad7e1fa6297",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "vlad11@gmail.com"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "example": "7cbae7ec-e4a9-4ab0-9e9f-bf5caadc5810"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Успешное подтверждение электронной почты",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email verified successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Аутентификация и авторизация",
+                "operationId": "f77777235d676b651c9465807d8f9485",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "vlad11@gmail.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "123123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Успешная аутентификация. Успешная авторизация",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDAvYXBpL2F1dGgvbG9naW4iLCJpYXQiOjE3MjM0Njg4NDMsImV4cCI6MTcyMzQ3MjQ0MywibmJmIjoxNzIzNDY4ODQzLCJqdGkiOiJoT2xESE9tbDhRMk9KVTBIIiwic3ViIjoiMjEiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.TbJdwV8a0Nfn_cKazDxBQTcPbR49C43JIMz2PK3ucug"
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "bearer"
+                                        },
+                                        "expires_in": {
+                                            "type": "integer",
+                                            "example": 3600
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 13
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "admin"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "admin@user.com"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "admin"
+                                                },
+                                                "authtype": {
+                                                    "type": "string",
+                                                    "example": "email"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-08-08T18:09:48.000000Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-08-08T18:09:48.000000Z"
+                                                },
+                                                "email_verified_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": null,
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/password/reset": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Сброс пароля",
+                "operationId": "32721d35712e78140bcc58c77faa4b9e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "vlad11@gmail.com"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "example": "7e044255d5599518268fcb6b026fc2668f5923e57063e6ee76b1f0e3312529d1"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "123123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "123123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Пароль успешно сброшен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Password reset successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Auth"
+        }
+    ]
+}

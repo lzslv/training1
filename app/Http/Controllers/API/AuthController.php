@@ -15,8 +15,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use OpenApi\Annotations as OA;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
+/**
+ * @OA\Info(
+ *     title="Testing1 API",
+ *     version="1.0.0"
+ * ),
+ * @OA\PathItem(
+ *     path="/api/"
+ * )
+ *
+ * @OA\Components(
+ *     @OA\SecurityScheme(
+ *         securityScheme="bearerAuth",
+ *         type="http",
+ *         scheme="bearer"
+ *     )
+ * )
+ **/
 class AuthController extends Controller
 {
 
@@ -29,14 +47,72 @@ class AuthController extends Controller
         $this->emailVerificationService = $emailVerificationService;
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/auth/register",
+     *     summary="Регистрация",
+     *     tags={"Auth"},
+     *
+     *     @OA\RequestBody(
+     *          @OA\JsonContent(
+     *              @OA\Property(property="name", type="string", example="vlad11"),
+     *              @OA\Property(property="role_id", type="integer", example=1),
+     *              @OA\Property(property="authtype", type="string", example="email"),
+     *              @OA\Property(property="email", type="string", example="vlad11@gmail.com"),
+     *              @OA\Property(property="password", type="string", example="123123"),
+     *              @OA\Property(property="password_confirmation", type="string", example="123123"),
+     *          )
+     *      ),
+     *
+     *     @OA\Response(
+     *          response=200,
+     *          description="Успешная регистрация",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="id", type="integer", example=1),
+     *              @OA\Property(property="name", type="string", example="vlad11"),
+     *              @OA\Property(property="email", type="string", example="vlad11@gmail.com"),
+     *              @OA\Property(property="role", type="string", example="user"),
+     *              @OA\Property(property="authtype", type="string", example="email"),
+     *              @OA\Property(property="created_at", type="string", format="date-time", example="2024-08-12T14:30:00Z"),
+     *              @OA\Property(property="updated_at", type="string", format="date-time", example="2024-08-12T14:30:00Z"),
+     *              @OA\Property(property="email_verified_at", type="string", format="date-time", example="2024-08-12T14:30:00Z")
+     *          )
+     *      ),
+     * )
+     **/
+
     public function register(RegisterRequest $request)
     {
         $user = $this->service->register($request->validated());
 
         $this->emailVerificationService->sendVerificationLink($user);
-
-        return new UserResource($user);
+        return UserResource::make($user)->resolve();
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/auth/email/resend-verification",
+     *     summary="Повторная отправка ссылки для верификации электронной почты",
+     *     security={{ "bearerAuth": {} }},
+     *     tags={"Auth"},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email", type="string", example="vlad11@gmail.com")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Успешная отправка ссылки для верификации",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Verification link sent to your email")
+     *         )
+     *     ),
+     * )
+     **/
 
     public function resendEmailVerificationLink(ResendEmailVerificationLinkRequest $request)
     {
@@ -44,10 +120,75 @@ class AuthController extends Controller
         return response()->json($response);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/auth/email/verify",
+     *     summary="Подтверждение аккаунта",
+     *     security={{ "bearerAuth": {} }},
+     *     tags={"Auth"},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email", type="string", example="vlad11@gmail.com"),
+     *             @OA\Property(property="token", type="string", example="7cbae7ec-e4a9-4ab0-9e9f-bf5caadc5810")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Успешное подтверждение электронной почты",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Email verified successfully")
+     *         )
+     *     ),
+     * )
+     **/
+
+
     public function verifyUserEmail(VerifyEmailRequest $request)
     {
         return $this->emailVerificationService->verifyEmail($request->email, $request->token);
     }
+
+
+    /**
+     * @OA\Post(
+     *     path="/api/auth/login",
+     *     summary="Аутентификация и авторизация",
+     *     tags={"Auth"},
+     *
+     *     @OA\RequestBody(
+     *          @OA\JsonContent(
+     *              @OA\Property(property="email", type="string", example="vlad11@gmail.com"),
+     *              @OA\Property(property="password", type="string", example="123123"),
+     *          )
+     *      ),
+     *
+     *     @OA\Response(
+     *           response=200,
+     *           description="Успешная аутентификация. Успешная авторизация",
+     *           @OA\JsonContent(
+     *               @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDAvYXBpL2F1dGgvbG9naW4iLCJpYXQiOjE3MjM0Njg4NDMsImV4cCI6MTcyMzQ3MjQ0MywibmJmIjoxNzIzNDY4ODQzLCJqdGkiOiJoT2xESE9tbDhRMk9KVTBIIiwic3ViIjoiMjEiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.TbJdwV8a0Nfn_cKazDxBQTcPbR49C43JIMz2PK3ucug"),
+     *               @OA\Property(property="token_type", type="string", example="bearer"),
+     *               @OA\Property(property="expires_in", type="integer", example=3600),
+     *               @OA\Property(
+     *                   property="user",
+     *                   type="object",
+     *                   @OA\Property(property="id", type="integer", example=13),
+     *                   @OA\Property(property="name", type="string", example="admin"),
+     *                   @OA\Property(property="email", type="string", example="admin@user.com"),
+     *                   @OA\Property(property="role", type="string", example="admin"),
+     *                   @OA\Property(property="authtype", type="string", example="email"),
+     *                   @OA\Property(property="created_at", type="string", format="date-time", example="2024-08-08T18:09:48.000000Z"),
+     *                   @OA\Property(property="updated_at", type="string", format="date-time", example="2024-08-08T18:09:48.000000Z"),
+     *                   @OA\Property(property="email_verified_at", type="string", format="date-time", nullable=true, example=null)
+     *               )
+     *           )
+     *       ),
+     * )
+     **/
 
     public function login(LoginRequest $request)
     {
