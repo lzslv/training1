@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\PasswordController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\UserController;
@@ -35,18 +36,29 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('users', [UserController::class, 'index']);
     Route::get('users/{id}', [UserController::class, 'show']);
 
-    Route::middleware(['admin'])->prefix('admin')->group(function () {
-        Route::get('users', [UserController::class, 'index']);
-        Route::get('users/{id}', [UserController::class, 'show']);
-        Route::post('users', [UserController::class, 'store']);
-        Route::put('users/{id}', [UserController::class, 'update']);
-        Route::delete('users/{id}', [UserController::class, 'destroy']);
 
-        Route::get('roles', [RoleController::class, 'index']);
-        Route::get('roles/{id}', [RoleController::class, 'show']);
-        Route::post('roles', [RoleController::class, 'store']);
-        Route::put('roles/{id}', [RoleController::class, 'update']);
-        Route::delete('roles/{id}', [RoleController::class, 'destroy']);
+    Route::middleware(['admin'])->prefix('admin')->group(function () {
+        Route::controller(UserController::class)->group(function () {
+            Route::get('users', 'index');
+            Route::get('users/{id}', 'show');
+            Route::post('users', 'store');
+            Route::put('users/{id}', 'update');
+            Route::delete('users/{id}', 'destroy');
+        });
+
+        Route::controller(RoleController::class)->group(function () {
+            Route::get('roles', 'index');
+            Route::get('roles/{id}', 'show');
+            Route::post('roles', 'store');
+            Route::put('roles/{id}', 'update');
+            Route::delete('roles/{id}', 'destroy');
+        });
+    });
+
+    Route::controller(ChatController::class)->group(function () {
+        Route::get('/chats', 'index');
+        Route::post('/chats', 'store');
+        Route::post('/chats/{chat}/messages', 'sendMessage');
     });
 
 });
