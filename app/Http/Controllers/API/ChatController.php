@@ -1,47 +1,45 @@
 <?php
+
 namespace App\Http\Controllers\API;
 
 use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SendMessageRequest;
+use App\Http\Requests\StoreChatRequest;
+use App\Http\Resources\ChatResource;
+use App\Http\Resources\MessageResource;
 use App\Models\Chat;
-use App\Models\Message;
-use Illuminate\Http\Request;
+use App\Services\ChatService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
+
+    protected $chatService;
+
+    public function __construct(ChatService $chatService)
+    {
+        $this->chatService = $chatService;
+    }
+
     public function index()
     {
-        return Auth::user()->chats()->with('users', 'messages')->get();
+        $chats = Auth::user()->chats()->with('users', 'messages')->get();
+        return ChatResource::collection($chats);
     }
 
-    public function store(Request $request)
+    public function store(StoreChatRequest $request): ChatResource
     {
-        $chat = new Chat();
-        $chat->save();
+        $chat = $this->chatService->storeChat($request->validated());
 
-        $chat->users()->attach(Auth::id());
-        $chat->users()->attach($request->user_id);
-
-        return response()->json(['chat_id' => $chat->id]);
+        return new ChatResource($chat);
     }
 
-    public function sendMessage(Request $request, $chatId)
+    public function sendMessage(SendMessageRequest $request, $chatId): MessageResource
     {
-        $chat = Chat::findOrFail($chatId);
-
-        if (!$chat->users->contains(Auth::id())) {
-            return response()->json(['error' => 'Not a participant'], 403);
-        }
-
-        $message = Message::create([
-            'chat_id' => $chat->id,
-            'user_id' => Auth::id(),
-            'message' => $request->message
-        ]);
-
+        $message = $this->chatService->sendMessage($chatId, $request->validated());
         broadcast(new MessageSent($message))->toOthers();
-
-        return response()->json($message);
+        return new MessageResource($message);
     }
 }

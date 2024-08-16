@@ -58,7 +58,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::controller(ChatController::class)->group(function () {
         Route::get('/chats', 'index');
         Route::post('/chats', 'store');
-        Route::post('/chats/{chat}/messages', 'sendMessage');
+        Route::post('/chats/{chat}', 'sendMessage');
     });
 
 });
