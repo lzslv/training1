@@ -60,7 +60,6 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/chats', 'store');
         Route::post('/chats/{chat}', 'sendMessage');
     });
-
 });
 
 

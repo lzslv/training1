@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Events\UserRegistered;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
@@ -86,6 +87,9 @@ class AuthController extends Controller
         $user = $this->service->register($request->validated());
 
         $this->emailVerificationService->sendVerificationLink($user);
+
+        event(new UserRegistered($user->email));
+
         return UserResource::make($user)->resolve();
     }
 
