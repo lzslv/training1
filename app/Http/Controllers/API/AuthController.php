@@ -7,16 +7,21 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\ResendEmailVerificationLinkRequest;
+use App\Http\Requests\SendOtpRequest;
 use App\Http\Requests\VerifyEmailRequest;
+use App\Http\Requests\VerifyOtpRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AuthService;
 use App\Services\EmailVerificationService;
+use App\Services\OtpService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use OpenApi\Annotations as OA;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 /**
@@ -40,12 +45,14 @@ class AuthController extends Controller
 {
 
     protected $service;
+    protected $otpService;
     protected $emailVerificationService;
 
-    public function __construct(AuthService $service, EmailVerificationService $emailVerificationService)
+    public function __construct(AuthService $service, EmailVerificationService $emailVerificationService, OtpService $otpService)
     {
         $this->service = $service;
         $this->emailVerificationService = $emailVerificationService;
+        $this->otpService = $otpService;
     }
 
     /**
@@ -90,7 +97,7 @@ class AuthController extends Controller
 
         event(new UserRegistered($user->email));
 
-        return UserResource::make($user)->resolve();
+        return UserResource::make($user);
     }
 
     /**
@@ -202,12 +209,48 @@ class AuthController extends Controller
         return $this->createNewToken($token);
     }
 
+    public function sendOtp(SendOtpRequest $request)
+    {
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $this->otpService->send($user);
+
+        return response()->json(['message' => 'OTP sent to your email']);
+    }
+
+    public function verifyOtp(VerifyOtpRequest $request)
+    {
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $result = $this->otpService->verify($user, $request->otp);
+
+        if ($result['status'] === 'error') {
+            return response()->json(['error' => $result['message']], 401);
+        }
+
+        $token = JWTAuth::fromUser($user);
+
+        auth('api')->setToken($token);
+
+        return $this->createNewToken($token);
+    }
+
+
     public function createNewToken($token)
     {
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => JWTAuth::factory()->getTTL() * 60,
+
             'user' => new UserResource(auth('api')->user())
         ]);
     }
@@ -251,12 +294,12 @@ class AuthController extends Controller
         }
     }
 
-    public function facebookRedirect(Request $request): \Symfony\Component\HttpFoundation\RedirectResponse|\Illuminate\Http\RedirectResponse
+    public function facebookRedirect(Request $request): RedirectResponse|\Illuminate\Http\RedirectResponse
     {
         return Socialite::driver('facebook')->redirect();
     }
 
-    public function facebookCallback(Request $request): UserResource|\Illuminate\Http\JsonResponse
+    public function facebookCallback(Request $request): UserResource|JsonResponse
     {
         $userdata = Socialite::driver('facebook')->user();
         $uuid = Str::uuid()->toString();

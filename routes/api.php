@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ChatController;
+use App\Http\Controllers\API\OtpController;
 use App\Http\Controllers\API\PasswordController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\UserController;
@@ -23,6 +24,11 @@ Route::get('auth/facebook/callback', [AuthController::class, 'facebookCallback']
 
 Route::post('auth/register', [AuthController::class, 'register']);
 Route::post('auth/login', [AuthController::class, 'login']);
+
+Route::post('auth/login/otp/send', [AuthController::class, 'sendOtp']);
+Route::post('auth/login/otp/verify', [AuthController::class, 'verifyOtp']);
+
+
 Route::post('auth/email/verify', [AuthController::class, 'verifyUserEmail']);
 Route::post('auth/email/resend-verification', [AuthController::class, 'resendEmailVerificationLink']);
 Route::post('password/forgot', [PasswordController::class, 'sendResetLinkEmail']);
