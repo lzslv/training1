@@ -15,7 +15,6 @@ use App\Models\User;
 use App\Services\AuthService;
 use App\Services\EmailVerificationService;
 use App\Services\OtpService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -297,28 +296,5 @@ class AuthController extends Controller
     public function facebookRedirect(Request $request): RedirectResponse|\Illuminate\Http\RedirectResponse
     {
         return Socialite::driver('facebook')->redirect();
-    }
-
-    public function facebookCallback(Request $request): UserResource|JsonResponse
-    {
-        $userdata = Socialite::driver('facebook')->user();
-        $uuid = Str::uuid()->toString();
-
-        $user = User::where('email', $userdata->email)->where('authtype', 'facebook')->first();
-        if ($user) {
-            $token = JWTAuth::fromUser($user);
-            auth('api')->setToken($token)->authenticate();
-            return $this->createNewToken($token);
-        } else {
-            $user = new User();
-            $user->name = $userdata['name'];
-            $user->email = $userdata['email'];
-            $user->password = Hash::make($uuid . now());
-            $user->authtype = 'facebook';
-            $user->role_id = 1;
-            $user->email_verified_at = now();
-            $user->save();
-            return new UserResource($user);
-        }
     }
 }

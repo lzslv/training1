@@ -2,32 +2,19 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ChatController;
-use App\Http\Controllers\API\OtpController;
 use App\Http\Controllers\API\PasswordController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\UserController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-*/
-
-
 Route::get('auth/google/redirect', [AuthController::class, 'googleRedirect']);
 Route::get('auth/google/callback', [AuthController::class, 'googleCallback']);
-
-Route::get('auth/facebook/redirect', [AuthController::class, 'facebookRedirect']);
-Route::get('auth/facebook/callback', [AuthController::class, 'facebookCallback']);
-
 
 Route::post('auth/register', [AuthController::class, 'register']);
 Route::post('auth/login', [AuthController::class, 'login']);
 
 Route::post('auth/login/otp/send', [AuthController::class, 'sendOtp']);
 Route::post('auth/login/otp/verify', [AuthController::class, 'verifyOtp']);
-
 
 Route::post('auth/email/verify', [AuthController::class, 'verifyUserEmail']);
 Route::post('auth/email/resend-verification', [AuthController::class, 'resendEmailVerificationLink']);

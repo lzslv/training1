@@ -20,8 +20,6 @@ return new class extends Migration
 
             $table->index('user_id', 'otps_user_idx');
             $table->foreign('user_id', 'otps_user_fk')->references('id')->on('users');
-
-            $table->softDeletes();
         });
     }
 
